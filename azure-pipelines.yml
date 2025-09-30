@@ -1,0 +1,37 @@
+# Starter pipeline for .NET Core Web App
+# Vyshnavc04/NewRepo4 / azure-pipelines.yml
+
+trigger:
+- master # This runs the pipeline when code is pushed to the master branch.
+
+pool:
+  vmImage: 'windows-latest' # Specifies the operating system for the build agent.
+
+variables:
+  solution: '**/*.sln' # Variable to find your solution file.
+  buildPlatform: 'Any CPU' # Variable for the target platform.
+  buildConfiguration: 'Release' # Variable for the build configuration (e.g., Release or Debug).
+
+steps:
+- task: NuGetToolInstaller@1
+  displayName: 'Install NuGet Tool'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet Restore'
+  inputs:
+    restoreSolution: '$(solution)' # Restores all NuGet packages required by your solution.
+
+- task: VSBuild@1
+  displayName: 'Build Solution'
+  inputs:
+    solution: '$(solution)'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(Build.ArtifactStagingDirectory)"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifacts'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)' # The folder containing the compiled, deployable files.
+    artifactName: 'drop' # The name of the resulting artifact folder.
+    publishLocation: 'Container'
